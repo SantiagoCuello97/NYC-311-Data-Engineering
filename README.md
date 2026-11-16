@@ -1,5 +1,7 @@
 # ServicePulse NYC311
 
+[![ServicePulse CI](https://github.com/SantiagoCuello97/ServicePulse/actions/workflows/ci.yml/badge.svg)](https://github.com/SantiagoCuello97/ServicePulse/actions/workflows/ci.yml)
+
 **A reproducible data engineering and analytics engineering project built with Python, PostgreSQL, dbt Core, and GitHub Actions.**
 
 ServicePulse ingests public NYC 311 service request data, persists records in PostgreSQL, and transforms them into analytics-ready models. The project focuses on reliability, incremental data processing, data quality, and recovery from failures rather than on building a dashboard.
@@ -28,7 +30,7 @@ The dbt build consists of three SQL view models and sixteen data tests.
 - **PostgreSQL 17:** Persistent storage, UPSERT operations, transactional state, and analytical queries.
 - **dbt Core + dbt-postgres:** Staging, fact modeling, aggregation, and data quality tests.
 - **pytest:** Automated unit and PostgreSQL integration tests.
-- **GitHub Actions:** Continuous integration configuration with an ephemeral PostgreSQL service.
+- **GitHub Actions:** Verified continuous integration using an ephemeral PostgreSQL service and synthetic test data.
 
 ## Architecture
 
@@ -252,7 +254,7 @@ It is configured to:
 
 The workflow uses synthetic data for CI. It does **not** upload the locally collected 51,743 real requests.
 
-**CI status:** The workflow YAML has passed local structural validation. Execution on GitHub-hosted runners is pending and should not be described as verified until a real workflow run succeeds.
+**CI status:** Verified on GitHub Actions (November 16, 2026). Workflow run #2 completed successfully: 61 Python tests passed, dbt build completed with PASS=19 and ERROR=0, and synthetic-data analytics reconciliation passed.
 
 ## Known limitations
 
@@ -262,7 +264,6 @@ The workflow uses synthetic data for CI. It does **not** upload the locally coll
 - **Historical resume assumptions:** Recovery derives a cursor from records already stored. It assumes the corresponding historical selection is continuous and consistently ordered.
 - **Operational deployment:** No always-on scheduler, cloud-hosted production database, or service-level objective is included.
 - **Source quality:** Public source records may contain erroneous or incomplete values. Data quality tests identify selected inconsistencies but do not guarantee perfect upstream data.
-- **CI verification:** GitHub-hosted workflow execution remains pending.
 
 ## Portfolio focus
 
