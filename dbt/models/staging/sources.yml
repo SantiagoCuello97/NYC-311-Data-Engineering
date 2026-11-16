@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: nyc311
+    description: Raw NYC 311 records ingested into PostgreSQL.
+    schema: public
+    tables:
+      - name: raw_service_requests
+        description: Source records maintained by the Python ingestion pipeline.

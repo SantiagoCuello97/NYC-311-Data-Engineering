@@ -1,0 +1,59 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# ServicePulse - local secrets and build artifacts
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+
+# Local development backups and reports
+*.bak
+*.report.txt
+*.log
+
+# dbt-generated artifacts
+dbt/target/
+dbt/logs/
+dbt/dbt_packages/
+target/
+logs/
+
+# Local databases and credentials
+*.sqlite
+*.sqlite3
+*.db
+*.pem
+*.key
+
+# Operating system artifacts
+.DS_Store
+Thumbs.db
+
+# ServicePulse exploratory scripts
+/src/audit_historical_window.py
+/src/build_fact_dbt.py
+/src/build_mart_dbt.py
+/src/build_staging_dbt.py
+/src/check_connections.py
+/src/check_dbt.py
+/src/diagnose_dbt.py
+/src/dry_run_window.py
+/src/probe_keyset_desc.py
+/src/probe_large_window.py
+/src/probe_next_window.py
+/src/probe_pagination.py
+/src/probe_pagination_v2.py
+/src/probe_payload_changes.py
+/src/probe_record_movement.py
+/src/probe_window_volume.py
+/src/verify_live_ingestion.py

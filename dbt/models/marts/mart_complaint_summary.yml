@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: mart_complaint_summary
+    description: >
+      Monthly service request metrics grouped by agency
+      and complaint type. Closure is determined by the
+      presence of closed_at. Invalid dates are counted
+      but excluded from resolution averages.
+    columns:
+      - name: total_requests
+        data_tests:
+          - not_null
+
+      - name: requests_with_close_date
+        data_tests:
+          - not_null
+
+      - name: requests_without_close_date
+        data_tests:
+          - not_null
+
+      - name: invalid_date_requests
+        data_tests:
+          - not_null
+
+      - name: valid_resolution_requests
+        data_tests:
+          - not_null

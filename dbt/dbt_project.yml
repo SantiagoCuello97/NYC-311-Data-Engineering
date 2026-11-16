@@ -1,0 +1,13 @@
+name: servicepulse
+version: '1.0.0'
+config-version: 2
+
+profile: servicepulse
+
+model-paths: ["models"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  servicepulse:
+    +materialized: view

@@ -1,0 +1,181 @@
+name: ServicePulse CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Python + PostgreSQL + dbt
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+      DB_NAME: servicepulse
+      DB_USER: servicepulse_user
+      DB_PASSWORD: ci_local_test_only
+      SERVICEPULSE_REPORT_PATH: /tmp/servicepulse-report.txt
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: servicepulse
+          POSTGRES_USER: servicepulse_user
+          POSTGRES_PASSWORD: ci_local_test_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U servicepulse_user -d servicepulse"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip check
+
+      - name: Initialize PostgreSQL schema
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import psycopg
+
+          scripts = [
+              "sql/001_init.sql",
+              "sql/002_sync_state.sql",
+              "sql/003_window_checkpoint.sql",
+          ]
+
+          with psycopg.connect(
+              host=os.environ["DB_HOST"],
+              port=int(os.environ["DB_PORT"]),
+              dbname=os.environ["DB_NAME"],
+              user=os.environ["DB_USER"],
+              password=os.environ["DB_PASSWORD"],
+          ) as conn:
+              for script in scripts:
+                  sql = Path(script).read_text(encoding="utf-8-sig")
+                  with conn.cursor() as cur:
+                      cur.execute(sql)
+                  print(f"Initialized: {script}")
+          PY
+
+      - name: Run Python tests
+        run: python -m pytest -q tests --tb=short
+
+      - name: Seed a small synthetic dbt dataset
+        env:
+          PYTHONPATH: src
+        run: |
+          python - <<'PY'
+          import os
+          import psycopg
+          from ingest import ingest_records
+
+          records = [
+              {
+                  "unique_key": "9900000001",
+                  ":updated_at": "2026-10-02T12:00:00Z",
+                  "created_date": "2026-10-01T08:00:00",
+                  "closed_date": "2026-10-02T10:00:00",
+                  "status": "Closed",
+                  "agency": "DOT",
+                  "complaint_type": "Street Condition",
+              },
+              {
+                  "unique_key": "9900000002",
+                  ":updated_at": "2026-10-02T12:00:00Z",
+                  "created_date": "2026-10-01T09:00:00",
+                  "closed_date": None,
+                  "status": "Open",
+                  "agency": "DOT",
+                  "complaint_type": "Street Condition",
+              },
+          ]
+
+          with psycopg.connect(
+              host=os.environ["DB_HOST"],
+              port=int(os.environ["DB_PORT"]),
+              dbname=os.environ["DB_NAME"],
+              user=os.environ["DB_USER"],
+              password=os.environ["DB_PASSWORD"],
+          ) as conn:
+              inserted, updated, unchanged = ingest_records(
+                  conn, records
+              )
+              assert inserted == 2
+              assert updated == 0
+              assert unchanged == 0
+
+          print("Synthetic seed: 2 requests")
+          PY
+
+      - name: Validate dbt connection
+        run: |
+          dbt debug \
+            --project-dir dbt \
+            --profiles-dir dbt
+
+      - name: Build and test dbt models
+        run: |
+          dbt build \
+            --project-dir dbt \
+            --profiles-dir dbt
+
+      - name: Verify analytics row counts
+        run: |
+          python - <<'PY'
+          import os
+          import psycopg
+
+          with psycopg.connect(
+              host=os.environ["DB_HOST"],
+              port=int(os.environ["DB_PORT"]),
+              dbname=os.environ["DB_NAME"],
+              user=os.environ["DB_USER"],
+              password=os.environ["DB_PASSWORD"],
+          ) as conn:
+              with conn.cursor() as cur:
+                  for table in (
+                      "public.raw_service_requests",
+                      "analytics.stg_service_requests",
+                      "analytics.fct_service_requests",
+                  ):
+                      cur.execute(f"SELECT COUNT(*) FROM {table}")
+                      count = cur.fetchone()[0]
+                      assert count == 2, (table, count)
+                      print(f"{table}: {count}")
+
+                  cur.execute(
+                      "SELECT COUNT(*) "
+                      "FROM analytics.mart_complaint_summary"
+                  )
+                  mart_count = cur.fetchone()[0]
+                  assert mart_count > 0
+                  print(f"Mart groups: {mart_count}")
+
+          print("CI analytics reconciliation: PASS")
+          PY

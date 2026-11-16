@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg_service_requests
+    description: Clean staging view with one row per NYC 311 request.
+    columns:
+      - name: request_id
+        description: Original unique_key from NYC 311.
+        data_tests:
+          - unique
+          - not_null
+
+      - name: source_updated_at
+        description: Source update timestamp used by ingestion.
+        data_tests:
+          - not_null
+
+      - name: status
+        description: Normalized service request status.
+        data_tests:
+          - not_null
