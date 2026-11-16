@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from probe_payload_changes import changed_fields
+from id_reconciliation import changed_fields
 
 
 def test_same_business_fields():

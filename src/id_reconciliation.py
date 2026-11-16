@@ -4,6 +4,18 @@ from window_extraction import timestamp
 
 UPDATE_FIELD = ":updated_at"
 
+BUSINESS_FIELDS = ("status", "agency", "complaint_type")
+
+
+def changed_fields(stored, current):
+    """Return changed selected business fields in stable field order."""
+    return [
+        field
+        for field in BUSINESS_FIELDS
+        if stored.get(field) != current.get(field)
+    ]
+
+
 
 def classify_record(stored, current):
     """Classify an existing record without changing either payload."""
