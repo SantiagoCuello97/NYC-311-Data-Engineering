@@ -1,10 +1,10 @@
 # ServicePulse NYC311
 
-[![ServicePulse CI](https://github.com/SantiagoCuello97/ServicePulse/actions/workflows/ci.yml/badge.svg)](https://github.com/SantiagoCuello97/ServicePulse/actions/workflows/ci.yml)
+[![ServicePulse CI](https://github.com/SantiagoCuello97/NYC-311-Data-Engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/SantiagoCuello97/NYC-311-Data-Engineering/actions/workflows/ci.yml)
 
 **A reproducible data engineering and analytics engineering project built with Python, PostgreSQL, dbt Core, and GitHub Actions.**
 
-ServicePulse ingests public NYC 311 service request data, persists records in PostgreSQL, and transforms them into analytics-ready models. The project focuses on reliability, incremental data processing, data quality, and recovery from failures rather than on building a dashboard.
+This project ingests public NYC 311 service request data, stores and processes records in PostgreSQL, and transforms them into analytics-ready models using dbt. It demonstrates core data engineering practices, including incremental ingestion, data quality validation, historical backfills, automated testing, and failure recovery.
 
 ## Project results
 
